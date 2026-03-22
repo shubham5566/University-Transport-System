@@ -9,11 +9,9 @@ public class CustomWebMvcConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/{spring:\\w+}")
-                .setViewName("forward:/");
-        registry.addViewController("/**/{spring:\\w+}")
-                .setViewName("forward:/");
-        registry.addViewController("/{spring:\\w+}/**{spring:?!(\\.js|\\.css)$}")
+
+        // ✅ Only ONE safe mapping (no ** conflict)
+        registry.addViewController("/{path:[^\\.]*}")
                 .setViewName("forward:/");
     }
 }
