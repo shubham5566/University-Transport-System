@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Nav, Button } from "react-bootstrap";
 import { logout } from "../actions/SecurityActions";
 import { connect } from "react-redux";
+import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPowerOff,
@@ -18,29 +19,19 @@ import {
 class SideNavbar extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      pathnameComponents: window.location.pathname.split("/")
-    };
     this.processLogout = this.processLogout.bind(this);
   }
 
-  processLogout = event => {
-    if (
-      window.confirm("Do you want to logout?")
-    ) {
+  processLogout = () => {
+    if (window.confirm("Do you want to logout?")) {
       this.props.logout();
-      window.location.href = "/";
+      this.props.navigate("/"); // ✅ React Router navigation
     }
   };
 
   render() {
     return (
       <Nav
-        defaultActiveKey={
-          this.state.pathnameComponents[1] === ""
-            ? "/schedule"
-            : "/" + this.state.pathnameComponents[1]
-        }
         variant="pills"
         className="flex-column"
         style={{
@@ -51,48 +42,55 @@ class SideNavbar extends Component {
           fontWeight: "500"
         }}
       >
-        <Nav.Link href="/schedule">
+        <Nav.Link as={NavLink} to="/schedule">
           <FontAwesomeIcon icon={faCalendarCheck} />
           {" Schedule"}
         </Nav.Link>
-        <Nav.Link href="/bus">
+
+        <Nav.Link as={NavLink} to="/bus">
           <FontAwesomeIcon icon={faBus} />
           {" Bus"}
         </Nav.Link>
-        <Nav.Link href="/stoppage">
+
+        <Nav.Link as={NavLink} to="/stoppage">
           <FontAwesomeIcon icon={faMapMarkerAlt} />
           {" Stoppage"}
         </Nav.Link>
-        <Nav.Link href="/route">
+
+        <Nav.Link as={NavLink} to="/route">
           <FontAwesomeIcon icon={faRoute} />
           {" Route"}
         </Nav.Link>
-        <Nav.Link href="/driver">
+
+        <Nav.Link as={NavLink} to="/driver">
           <FontAwesomeIcon icon={faUsersCog} />
           {" Driver"}
         </Nav.Link>
-        <Nav.Link href="/stuff">
+
+        <Nav.Link as={NavLink} to="/stuff">
           <FontAwesomeIcon icon={faUsers} />
           {" Stuff"}
         </Nav.Link>
-        <Nav.Link href="/notice">
+
+        <Nav.Link as={NavLink} to="/notice">
           <FontAwesomeIcon icon={faBullhorn} />
           {" Notice"}
         </Nav.Link>
-        <Nav.Link href="/feedback">
+
+        <Nav.Link as={NavLink} to="/feedback">
           <FontAwesomeIcon icon={faHandPaper} />
           {" Feedback"}
         </Nav.Link>
+
         <br />
+
         <Button
           size="sm"
           variant="outline-danger"
           onClick={this.processLogout}
         >
-          <span>
-            <FontAwesomeIcon icon={faPowerOff} />
-          </span>
-          {"  Logout"}
+          <FontAwesomeIcon icon={faPowerOff} />
+          {" Logout"}
         </Button>
       </Nav>
     );
