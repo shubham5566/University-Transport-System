@@ -17,19 +17,19 @@ public class SecurityConfig {
     @Autowired
     private JWTRequestFilter jwtRequestFilter;
 
-    // ✅ Password Encoder
+    //  Password Encoder
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Authentication Manager
+    //  Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // ✅ Security Configuration
+    //  Security Configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 

@@ -15,12 +15,12 @@ public class JWTUtility {
 
     private static final long DURATION = 5 * 3600 * 1000;
 
-    // ✅ Generate signing key
+    //  Generate signing key
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ✅ Extract all claims
+    //  Extract all claims
     private Claims extractAllClaims(String token) {
         if (token == null) return null;
 

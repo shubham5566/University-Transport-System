@@ -15,12 +15,15 @@ import jakarta.persistence.*;
 public class UserRoles {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_role_seq")
+    @SequenceGenerator(name = "user_role_seq", sequenceName = "user_role_seq", allocationSize = 1)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "user_user_id")
     private User user;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name="role_role_id")
     private Role role;
 }
