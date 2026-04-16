@@ -1,76 +1,70 @@
 package com.transport.university.universitytransportsystem.security;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import java.security.Key;
+import java.util.*;
 
 @Service
 public class JWTUtility {
 
-    private String SECRET_KEY = "zxcvb";
+    private String SECRET_KEY = "mysecretkey-is-very-long-and-it-has-very-good-length";
+
     private static final long DURATION = 5 * 3600 * 1000;
 
-    private Boolean isValidToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
-            return true;
-        } catch (SignatureException e) {
-            System.out.println("Invalid JWT Signature");
-        } catch (MalformedJwtException e) {
-            System.out.println("Invalid JWT Token");
-        } catch (ExpiredJwtException e) {
-            System.out.println("Expired JWT Token");
-        } catch (UnsupportedJwtException e) {
-            System.out.println("Unsupported JWT Token");
-        } catch (IllegalArgumentException e) {
-            System.out.println("JWT claims string empty");
-        }
-        return false;
+    //  Generate signing key
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
+    //  Extract all claims
     private Claims extractAllClaims(String token) {
-        if (!isValidToken(token)) return null;
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-    }
+        if (token == null) return null;
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey()) // ✅ FIXED
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            System.out.println("JWT Error: " + e.getMessage());
+            return null;
+        }
     }
 
     public String extractUserName(String token) {
-        if (!isValidToken(token)) return null;
-        return extractClaim(token, Claims::getSubject);
+        Claims claims = extractAllClaims(token);
+        return claims != null ? claims.getSubject() : null;
     }
 
     public Date extractExpirationDate(String token) {
-        if (!isValidToken(token)) return null;
-        return extractClaim(token, Claims::getExpiration);
+        Claims claims = extractAllClaims(token);
+        return claims != null ? claims.getExpiration() : null;
     }
 
     private Boolean isTokenExpired(String token) {
-        if (!isValidToken(token)) return null;
-        return extractExpirationDate(token).before(new Date());
+        Date expiry = extractExpirationDate(token);
+        return expiry != null && expiry.before(new Date());
     }
 
     public Boolean validateTokenByUserDetails(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (userName != null &&
+                userName.equals(userDetails.getUsername()) &&
+                !isTokenExpired(token));
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + DURATION))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
-    }
-
+    // ✅ Generate token (FIXED)
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + DURATION))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // ✅ FIXED
+                .compact();
     }
 }

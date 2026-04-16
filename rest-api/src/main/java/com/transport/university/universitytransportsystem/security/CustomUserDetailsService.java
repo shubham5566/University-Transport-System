@@ -14,33 +14,40 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
+    private final UserRolesRepo userRolesRepo;
+    private final RoleRepo roleRepo;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final DriverRepo driverRepo;
+    private final StuffRepo stuffRepo;
+    private final JWTUtility jwtUtility;
 
-    @Autowired
-    private UserRolesRepo userRolesRepo;
-
-    @Autowired
-    private RoleRepo roleRepo;
-
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @Autowired
-    private DriverRepo driverRepo;
-
-    @Autowired
-    private StuffRepo stuffRepo;
-
-    @Autowired
-    private JWTUtility jwtUtility;
+    public CustomUserDetailsService(
+            UserRepo userRepo,
+            UserRolesRepo userRolesRepo,
+            RoleRepo roleRepo,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            DriverRepo driverRepo,
+            StuffRepo stuffRepo,
+            JWTUtility jwtUtility
+    ) {
+        this.userRepo = userRepo;
+        this.userRolesRepo = userRolesRepo;
+        this.roleRepo = roleRepo;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.driverRepo = driverRepo;
+        this.stuffRepo = stuffRepo;
+        this.jwtUtility = jwtUtility;
+    }
 
 
     @Transactional
@@ -49,10 +56,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(List<UserRoles> userRolesList) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        for (UserRoles userRoles : userRolesList) {
-            authorities.add(new SimpleGrantedAuthority(userRoles.getRole().getRoleName()));
-        }
+        List<GrantedAuthority> authorities = userRolesList.stream()
+                .map(ur -> new SimpleGrantedAuthority(ur.getRole().getRoleName()))
+                .collect(Collectors.toList());
         return authorities;
     }
 
@@ -79,10 +85,9 @@ public class CustomUserDetailsService implements UserDetailsService {
             newUser.setPassword(bCryptPasswordEncoder.encode(newUser.getPassword()));
             User savedUser = userRepo.save(newUser);
             UserRoles userRole;
-            if (rqUserRole != null && rqUserRole.equals("admin")) {
+            if (rqUserRole != null && rqUserRole.equals("ROLE_ADMIN")) {
                 userRole = new UserRoles(null, savedUser, roleRepo.getOne(1)); // role 2 = ROLE_ADMIN
-            }
-            else {
+            } else {
                 userRole = new UserRoles(null, savedUser, roleRepo.getOne(2)); // role 2 = ROLE_USER
             }
             userRolesRepo.save(userRole);
@@ -184,7 +189,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         UserDetails userDetails = loadUserByUsername(email);
         Boolean isDriver = false;
-        for (GrantedAuthority authority: userDetails.getAuthorities()) {
+        for (GrantedAuthority authority : userDetails.getAuthorities()) {
             if (authority.getAuthority().equals("ROLE_DRIVER")) {
                 isDriver = true;
             }

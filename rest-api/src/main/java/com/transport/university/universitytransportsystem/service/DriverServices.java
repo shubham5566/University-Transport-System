@@ -5,6 +5,7 @@ import com.transport.university.universitytransportsystem.model.Driver;
 import com.transport.university.universitytransportsystem.model.Schedule;
 import com.transport.university.universitytransportsystem.repository.DriverRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class DriverServices {
     private UserServices userServices;
 
     @Autowired
+    @Lazy
     private StuffServices stuffServices;
 
 
